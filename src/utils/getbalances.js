@@ -44,6 +44,6 @@ export const useMetaMaskBalances = async (tokenContract) => {
       console.log("Issue with trying to get token balances");
       console.error(e);
    }
-   console.log(retVal);
+   // console.log(retVal);
    return retVal;
 };

@@ -6,10 +6,23 @@ import { useMetaMaskBalances } from "./utils/getbalances.js";
 import { theme } from "./theme";
 import TokenCard from "./components/tokencard.js";
 import getTknVals from "./utils/tknvals.js";
+import { Box, Typography, makeStyles } from "@material-ui/core";
 
 const ethDets = { decimals: 18, name: "Ethereum", symbol: "ETH" };
 
+const useStyles = makeStyles((theme) => ({
+   root: {},
+   container: {
+      height: "100%",
+      width: "85%",
+      margin: theme.spacing(3),
+      margin: "auto",
+      padding: theme.spacing(3),
+   },
+}));
+
 function App() {
+   let classes = useStyles();
    let [balances, setBalances] = useState({});
 
    if (typeof window.ethereum == "undefined") {
@@ -19,7 +32,7 @@ function App() {
       );
    }
 
-   let [ethUsdPrice, ethUsdError, ethUsdLoading] = useEthPrice();
+   let [ethUsdPrice] = useEthPrice();
 
    let tokensHeld = [];
 
@@ -28,39 +41,59 @@ function App() {
          var toSet = {};
          tokensHeld = Object.keys(r);
          let vals = await getTknVals(tokensHeld);
-         console.log(tokensHeld);
-         console.log(Object.keys(vals));
-         tokensHeld.map((tkn, key) => {
+         tokensHeld.map((tkn) => {
             let lower = tkn.toLowerCase();
-            console.log(vals[tkn]);
             if (tkn === "eth") {
                toSet[lower] = {
                   ...ethDets,
                   balance: r[tkn],
-                  val: { usd: ethUsdPrice },
+                  conv: { usd: ethUsdPrice },
                };
             } else {
                toSet[lower] = {
                   ...contractMap[tkn],
                   balance: r[tkn],
+                  address: tkn,
                };
             }
          });
          Object.keys(vals).map((tkn) => {
             toSet[tkn] = {
                ...toSet[tkn],
-               val: vals[tkn],
+               conv: vals[tkn],
             };
          });
          setBalances(toSet);
-         console.log(toSet);
       });
    };
 
-   // GetBalances();
+   const calcValues = async () => {
+      var toSetAll = { ...balances };
+
+      Object.keys(toSetAll).map((tkn) => {
+         let toSet = balances[tkn];
+         // Value in another currency
+         var computed = {};
+         // Other currencies
+         console.log(balances[tkn]);
+         let currency = Object.keys(balances[tkn].conv);
+         let convs = balances[tkn].conv;
+         console.log(currency);
+         currency.map((c) => {
+            computed[c] = balances[tkn].balance * convs[c];
+            // console.log(computed[c]);
+         });
+         console.log(toSet);
+         toSetAll[tkn] = { ...toSet, vals: computed };
+      });
+
+      setBalances(toSetAll);
+      console.log(toSetAll);
+   };
 
    useEffect(async () => {
       await GetBalances();
+      await calcValues();
    }, []);
 
    console.log(balances);
@@ -68,9 +101,18 @@ function App() {
    return (
       <div className="App">
          <ThemeProvider theme={theme}>
-            {Object.keys(balances).map((tkn) => {
-               return <TokenCard token={balances[tkn]} />;
-            })}
+            <Box className={classes.container}>
+               <Box className={classes.container}>
+                  <Typography variant={"h1"}>Token Recovery Tool</Typography>
+                  <Typography variant={"body2"}>
+                     Scan for MetaMask suppoerted ERC-20 tokens held by your
+                     address and add them to your watch list. 
+                  </Typography>
+               </Box>
+               {Object.keys(balances).map((tkn) => {
+                  return <TokenCard token={balances[tkn]} />;
+               })}
+            </Box>
          </ThemeProvider>
       </div>
    );

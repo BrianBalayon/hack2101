@@ -5,10 +5,8 @@ import { TOKEN_VAL_URL_P1, TOKEN_VAL_URL_P2 } from "./consts.js";
 const getTokenVals = async (addresses) => {
    let retVal = {};
 
-   console.log("hi");
 
    if (addresses.length < 1) {
-      console.log("hi");
       return {};
    }
 
@@ -35,7 +33,7 @@ const getTokenVals = async (addresses) => {
 const getPrices = async function (addresses) {
    let response = axios.get(TOKEN_VAL_URL_P1 + addresses + TOKEN_VAL_URL_P2);
 
-   console.log(TOKEN_VAL_URL_P1 + addresses + TOKEN_VAL_URL_P2);
+   // console.log(TOKEN_VAL_URL_P1 + addresses + TOKEN_VAL_URL_P2);
    let unpacked = await response.then((response) => {
       console.log(
          "%c In unpacking: " + Object.keys(response.data),
