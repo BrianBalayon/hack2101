@@ -1,13 +1,13 @@
 import contractMap from "@metamask/contract-metadata";
 import { BigNumber, ethers } from "ethers";
-import { ERC20_ABI } from "./consts";
+import { BALANCE_CHECK_ADD, ERC20_BALANCE_ABI } from "./consts";
 
 export const useMetaMaskBalances = async (tokenContract) => {
+
    var retVal = {};
    try {
       // Array of the tokens' contract addresses
       let tknAddresses = Object.keys(contractMap);
-      console.log(tknAddresses);
 
       // Connect to the blockchain
       const provider = new ethers.providers.Web3Provider(window.ethereum);
@@ -16,8 +16,8 @@ export const useMetaMaskBalances = async (tokenContract) => {
 
       // Query the tokens
       const tokenContract = new ethers.Contract(
-         "0xb1F8e55c7f64D203C1400B9D8555d050F94aDF39",
-         ERC20_ABI,
+         BALANCE_CHECK_ADD,
+         ERC20_BALANCE_ABI,
          signer
       );
       let rawBalances = await tokenContract.balances([signerAdd], tknAddresses);
@@ -32,14 +32,12 @@ export const useMetaMaskBalances = async (tokenContract) => {
             divisor = divisor.pow(contractMap[addy].decimals);
             amt = amt.div(divisor);
             retVal[addy] = amt.toNumber();
-            console.log(tknAddresses[i]);
+            // console.log(tknAddresses[i]);
          }
       }
 
       let eth = await signer.getBalance();
-      // let divisor = BigNumber.from(10);
-      // divisor = divisor.pow(18);
-      // eth = eth.div(divisor);
+      // Need to get ETH from wei
       let div = Math.pow(10, 18);
       retVal.eth = parseFloat(eth.toString()) / div;
    } catch (e) {
