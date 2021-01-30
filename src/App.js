@@ -7,6 +7,7 @@ import { theme } from "./theme";
 import TokenCard from "./components/tokencard.js";
 import getTknVals from "./utils/tknvals.js";
 import { Box, Typography, makeStyles } from "@material-ui/core";
+import Web3 from "web3";
 
 const ethDets = { decimals: 18, name: "Ethereum", symbol: "ETH" };
 
@@ -25,12 +26,20 @@ function App() {
    let classes = useStyles();
    let [balances, setBalances] = useState({});
 
-   if (typeof window.ethereum == "undefined") {
-      console.log(
-         "%cPlease install Metamask! https://metamask.io/download.html",
-         "font-size: 36px; font-weight: bold"
-      );
-   }
+   let connect = async () => {
+      let ethereum = window.ethereum;
+      let web3 = window.web3;
+      if (typeof ethereum !== "undefined") {
+         await ethereum.enable();
+         web3 = new Web3(ethereum);
+      } else if (typeof web3 !== "undefined") {
+         web3 = new Web3(web3.currentProvider);
+      } else {
+         web3 = new Web3(
+            new Web3.providers.HttpProvider(process.env.WEB3_PROVIDER)
+         );
+      }
+   };
 
    let [ethUsdPrice] = useEthPrice();
 
@@ -92,6 +101,7 @@ function App() {
    };
 
    useEffect(async () => {
+      await connect();
       await GetBalances();
       await calcValues();
    }, []);
@@ -106,7 +116,11 @@ function App() {
                   <Typography variant={"h1"}>Token Recovery Tool</Typography>
                   <Typography variant={"body2"}>
                      Scan for MetaMask suppoerted ERC-20 tokens held by your
-                     address and add them to your watch list. 
+                     address and add them to your watch list.
+                  </Typography>
+                  <Typography variant={"body2"}>
+                     If you see no tokens listed, you have to enable MetaMask to
+                     connect.
                   </Typography>
                </Box>
                {Object.keys(balances).map((tkn) => {
